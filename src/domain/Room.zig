@@ -17,14 +17,16 @@ pub const Room = struct {
     }
 
     fn fill() std.mem.Allocator.Error!std.AutoHashMap(Directions, Limits) {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-	    const allocator = gpa.allocator();
+	    const allocator = std.heap.page_allocator;
         var map: std.AutoHashMap(Directions, Limits) = std.AutoHashMap(Directions, Limits).init(allocator);
-        try map.put(Directions.NORTH, Limits.WALL);
-        try map.put(Directions.SOUTH, Limits.WALL);
-        try map.put(Directions.EAST, Limits.WALL);
-        try map.put(Directions.WEST, Limits.WALL);
+        for (try Directions.asCollection()) |direction| {
+            try map.put(direction, Limits.WALL);    
+        }
         return map;
+    }
+
+    pub fn rebuildWall(self: *Self, wall: Directions, structure: Limits) std.mem.Allocator.Error!void {
+        return self.map.put(wall, structure);
     }
 
     pub fn isPrincipalRoute(self: Self) bool {
